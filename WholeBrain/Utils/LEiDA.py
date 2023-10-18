@@ -14,11 +14,11 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from scipy.spatial.distance import pdist, squareform
 
-from Utils.decorators import loadOrCompute
-from Utils.dunns import dunns
-import Observables.BOLDFilters as BOLDFilters
+from WholeBrain.Utils.decorators import loadOrCompute
+from WholeBrain.Utils.dunns import dunns
+import WholeBrain.Observables.BOLDFilters as BOLDFilters
 
-import Observables.LEigen as LEigen
+import WholeBrain.Observables.LEigen as LEigen
 
 print("Going to use LEiDA...")
 

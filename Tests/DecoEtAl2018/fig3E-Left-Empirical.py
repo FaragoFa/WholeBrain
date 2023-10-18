@@ -27,7 +27,7 @@ from setup import *
 
 
 # set BOLD filter settings
-import Observables.BOLDFilters as filters
+import WholeBrain.Observables.BOLDFilters as filters
 filters.k = 2                             # 2nd order butterworth filter
 filters.flp = .04                         # lowpass frequency of filter
 filters.fhi = 0.07                        # highpass

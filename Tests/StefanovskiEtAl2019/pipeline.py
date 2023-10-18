@@ -12,7 +12,7 @@
 import numpy as np
 import scipy.io as sio
 import matplotlib.pyplot as plt
-from StefanovskiEtAl2019 import Abeta_Model as Abeta
+from Tests.StefanovskiEtAl2019 import Abeta_Model as Abeta
 from WholeBrain.Models import JansenRit as JR
 
 integrator = None
@@ -30,8 +30,8 @@ def recompileSignatures():
 
 def configSim(abeta_burden):
     global integrator, runSim
-    import Integrators.Euler
-    integrator = Integrators.Euler
+    import WholeBrain.Integrators.Euler as Euler
+    integrator = Euler
     integrator.neuronalModel = JR
     integrator.clamping = False
     integrator.ds = ds

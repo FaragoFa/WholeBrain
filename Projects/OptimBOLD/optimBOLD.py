@@ -18,9 +18,9 @@
 # --------------------------------------------------------------------------
 import numpy as np
 import simulateFCD
-from Utils.BOLD import BOLDHemModel_Stephan2008 as BOLDModel
+from WholeBrain.Utils.BOLD import BOLDHemModel_Stephan2008 as BOLDModel
 from WholeBrain.Utils import errorMetrics
-from Observables import BOLDFilters
+from WholeBrain.Observables import BOLDFilters
 
 optimizationVars = {
     'kappa': BOLDModel.kappa,

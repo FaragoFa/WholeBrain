@@ -22,14 +22,14 @@ import scipy.io as sio
 from pathlib import Path
 from scipy import signal
 import matplotlib.pyplot as plt
-from Utils.FIC import BalanceFIC
+from WholeBrain.Utils.FIC import BalanceFIC
 from Projects.OptimBOLD import optimBOLD
 from WholeBrain.Models import DynamicMeanField #, serotonin2A
-from Integrators import EulerMaruyama as integrator
+from WholeBrain.Integrators import EulerMaruyama as integrator
 import simulateFCD
-from Utils.BOLD import BOLDHemModel_Stephan2008
+from WholeBrain.Utils.BOLD import BOLDHemModel_Stephan2008
 from WholeBrain.Utils import errorMetrics
-from Observables import BOLDFilters
+from WholeBrain.Observables import BOLDFilters
 import time
 
 integrator.neuronalModel = DynamicMeanField

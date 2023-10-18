@@ -21,7 +21,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import WholeBrain.Models.JansenRit as JR
-import Integrators.Euler as integrator
+import WholeBrain.Integrators.Euler as integrator
 import WholeBrain.Utils.fft as fft
 
 np.random.seed(7)

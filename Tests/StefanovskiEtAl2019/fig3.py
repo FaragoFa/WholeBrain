@@ -11,7 +11,7 @@
 # --------------------------------------------------------------------------------------
 import numpy as np
 import matplotlib.pyplot as plt
-from StefanovskiEtAl2019 import Abeta_Model as Abeta
+from Tests.StefanovskiEtAl2019 import Abeta_Model as Abeta
 
 if __name__ == '__main__':
     plt.rcParams.update({'font.size': 22})

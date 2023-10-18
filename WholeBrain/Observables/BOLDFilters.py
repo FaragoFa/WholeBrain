@@ -14,10 +14,10 @@ from scipy import signal
 
 # FILTER SETTINGS (from Gustavo Deco's FCD_LSD_model.m)
 # -----------------------------------------------------
-TR = None                         # sampling interval. Original was 2.
+TR = 0.72                         # sampling interval. Original was 2.
 k = 2                             # 2nd order butterworth filter
-flp = None                        # lowpass frequency of filter. Original was .02
-fhi = None                        # highpass. Original was 0.1
+flp = .02                        # lowpass frequency of filter. Original was .02
+fhi = 0.1                        # highpass. Original was 0.1
 
 finalDetrend = False              # Only for compatibility with some Decolab codes...
 

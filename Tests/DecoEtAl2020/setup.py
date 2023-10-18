@@ -24,22 +24,22 @@ from numba import jit
 # import WholeBrain.Models.DynamicMeanField as neuronalModel
 import WholeBrain.Models.Transcriptional as neuronalModel
 # ----------------------------------------------
-import Integrators.EulerMaruyama as integrator
+import WholeBrain.Integrators.EulerMaruyama as integrator
 integrator.neuronalModel = neuronalModel
 integrator.verbose = False
-import Utils.BOLD.BOLDHemModel_Stephan2007 as Stephan2007
-import Utils.simulate_SimAndBOLD as simulateBOLD
+import WholeBrain.Utils.BOLD.BOLDHemModel_Stephan2007 as Stephan2007
+import WholeBrain.simulate_SimAndBOLD as simulateBOLD
 simulateBOLD.integrator = integrator
 simulateBOLD.BOLDModel = Stephan2007
 # import WholeBrain.simulateFCD as simulateFCD
 # simulateFCD.integrator = integrator
 # simulateFCD.BOLDModel = Stephan2007
 
-import Utils.FIC.BalanceFIC as BalanceFIC
+import WholeBrain.FIC.BalanceFIC as BalanceFIC
 BalanceFIC.integrator = integrator
 
 # set BOLD filter settings
-import Observables.BOLDFilters as filters
+import WholeBrain.Observables.BOLDFilters as filters
 filters.k = 2       # 2nd order butterworth filter
 filters.flp = .008  # lowpass frequency of filter
 filters.fhi = .08   # highpass

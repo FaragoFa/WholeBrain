@@ -25,11 +25,11 @@ from numba import jit
 # two gain functions phie and phii for the right ones...
 import WholeBrain.Models.serotonin2A as serotonin2A
 # ----------------------------------------------
-import Integrators.EulerMaruyama as integrator
+import WholeBrain.Integrators.EulerMaruyama as integrator
 integrator.neuronalModel = serotonin2A
 integrator.verbose = False
-import Utils.BOLD.BOLDHemModel_Stephan2007 as Stephan2007
-import Utils.simulate_SimAndBOLD as simulateBOLD
+import WholeBrain.Utils.BOLD.BOLDHemModel_Stephan2007 as Stephan2007
+import WholeBrain.Utils.simulate_SimAndBOLD as simulateBOLD
 simulateBOLD.integrator = integrator
 simulateBOLD.BOLDModel = Stephan2007
 
@@ -41,22 +41,22 @@ optim1D.integrator = integrator
 
 # --------------------------------------------------------------------------
 # FIC mechanism
-import Utils.FIC.BalanceFIC as BalanceFIC
+import WholeBrain.Utils.FIC.BalanceFIC as BalanceFIC
 BalanceFIC.integrator = integrator
 
 # --------------------------------------------------------------------------
 # Filters and Observables
 # --------------------------------------------------------------------------
 # set BOLD filter settings
-import Observables.BOLDFilters as filters
+import WholeBrain.Observables.BOLDFilters as filters
 filters.k = 2                             # 2nd order butterworth filter
 filters.flp = .01                         # lowpass frequency of filter
 filters.fhi = .1                          # highpass
 filters.TR = 2.                           # TR
 
 # import observables
-import Observables.FC as FC
-import Observables.swFCD as swFCD
+import WholeBrain.Observables.FC as FC
+import WholeBrain.Observables.swFCD as swFCD
 
 # --------------------------------------------------------------------------
 # setp up IDs...

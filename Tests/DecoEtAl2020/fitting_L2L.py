@@ -28,7 +28,7 @@ import WholeBrain.Optimizers.ParmSweep as optim1D
 optim1D.simulateBOLD = simulateBOLD
 optim1D.integrator = integrator
 
-from Utils.preprocessSignal import processEmpiricalSubjects  # processBOLDSignals
+from WholeBrain.Utils.preprocessSignal import processEmpiricalSubjects  # processBOLDSignals
 # --------------------------------------------------------------------------
 #  End local setup...
 # --------------------------------------------------------------------------

@@ -15,13 +15,13 @@ import scipy.io as sio
 import matplotlib.pyplot as plt
 
 # ============== chose a model
-import Models.DynamicMeanField as DMF
+import WholeBrain.Models.DynamicMeanField as DMF
 # ============== chose and setup an integrator
-import Integrators.EulerMaruyama as integrator
+import WholeBrain.Integrators.EulerMaruyama as integrator
 integrator.neuronalModel = DMF
 integrator.verbose = False
 # ============== chose a FIC mechanism
-import Utils.FIC.BalanceFIC as BalanceFIC
+import WholeBrain.Utils.FIC.BalanceFIC as BalanceFIC
 BalanceFIC.integrator = integrator
 
 np.random.seed(42)  # Fix the seed for debug purposes...
