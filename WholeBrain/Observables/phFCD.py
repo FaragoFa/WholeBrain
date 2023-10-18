@@ -196,7 +196,7 @@ if __name__ == '__main__':
     import scipy.io as sio
     import matplotlib.pyplot as plt
 
-    from Observables import BOLDFilters
+    from WholeBrain.Observables import BOLDFilters
     BOLDFilters.flp = 0.008
     BOLDFilters.fhi = 0.08
     BOLDFilters.TR = 3

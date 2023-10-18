@@ -27,7 +27,7 @@ print("Going to use Integration...")
 
 name = 'Integration'
 
-from Observables import BOLDFilters
+from WholeBrain.Observables import BOLDFilters
 
 BOLDFilters.flp = 0.008
 BOLDFilters.fhi = 0.08

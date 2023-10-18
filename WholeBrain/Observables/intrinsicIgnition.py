@@ -36,7 +36,7 @@ from scipy import signal
 # import matplotlib.pyplot as plt
 # from scipy.optimize import curve_fit
 
-from Observables import BOLDFilters, demean
+from WholeBrain.Observables import BOLDFilters, demean
 # import WholeBrain.Observables.Integration as Integration
 
 # ==================================
