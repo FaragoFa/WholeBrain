@@ -65,6 +65,10 @@ def plotMaxFrecForAllWe(C, wStart=0, wEnd=6 + 0.001, wStep=0.05,
     ee, = plt.plot(wes, maxRateNoFIC)
     ee.set_label("E-E")
 
+    # Termino los procesos
+    pool.close()
+    pool.join()
+
     print("======================================")
     print("=    simulating FIC                  =")
     print("======================================")
