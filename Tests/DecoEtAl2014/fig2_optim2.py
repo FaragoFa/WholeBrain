@@ -37,6 +37,24 @@ def simulate_we(we, C, N, dt, Tmaxneuronal):
     v = integrator.simulate(dt, Tmaxneuronal)[:, 1, :]
     return np.max(np.mean(v, 0))
 
+def simulate_we_fic(we, C, N, dt, Tmaxneuronal, fileName, precompute):
+    DMF.setParms({'SC': C, 'we': we, 'J': np.ones(N)})  # Configurar parámetros
+    integrator.recompileSignatures()
+    v = integrator.simulate(dt, Tmaxneuronal)[:, 1, :]
+    if precompute:
+        BalanceFIC.Balance_AllJ9(C, [we], baseName=fileName)
+    maxRateFIC = np.zeros(1)
+    for kk, we in enumerate([we]):
+        print("\nProcessing: {}  ".format(we), end='')
+        DMF.setParms({'we': we})
+        balancedJ = BalanceFIC.Balance_J9(we, C, fileName.format(np.round(we, decimals=2)))['J'].flatten()
+        integrator.neuronalModel.setParms({'J': balancedJ})
+        integrator.recompileSignatures()
+        v = integrator.simulate(dt, Tmaxneuronal)[:,1,:]
+        maxRateFIC[kk] = np.max(np.mean(v,0))
+        print("maxRateFIC => {}".format(maxRateFIC[kk]))
+    return maxRateFIC[0]
+
 def plotMaxFrecForAllWe(C, wStart=0, wEnd=6 + 0.001, wStep=0.05,
                         extraTitle='', precompute=True, fileName=None, num_processes=1):
     # Integration parms...
@@ -46,7 +64,6 @@ def plotMaxFrecForAllWe(C, wStart=0, wEnd=6 + 0.001, wStep=0.05,
     # all tested global couplings (G in the paper):
     wes = np.arange(wStart + wStep, wEnd, wStep)  # warning: the range of wes depends on the connectome.
     N = C.shape[0]
-
     DMF.setParms({'SC': C})
 
     print("======================================")
@@ -70,18 +87,15 @@ def plotMaxFrecForAllWe(C, wStart=0, wEnd=6 + 0.001, wStep=0.05,
     print("======================================")
 
     # Resto del código para la simulación FIC
-    maxRateFIC = np.zeros(len(wes))
-    if precompute:
-        BalanceFIC.Balance_AllJ9(C, wes, baseName=fileName)
-    for kk, we in enumerate(wes):
-        print("\nProcessing: {}  ".format(we), end='')
-        DMF.setParms({'we': we})
-        balancedJ = BalanceFIC.Balance_J9(we, C, fileName.format(np.round(we, decimals=2)))['J'].flatten()
-        integrator.neuronalModel.setParms({'J': balancedJ})
-        integrator.recompileSignatures()
-        v = integrator.simulate(dt, Tmaxneuronal)[:,1,:]
-        maxRateFIC[kk] = np.max(np.mean(v,0))
-        print("maxRateFIC => {}".format(maxRateFIC[kk]))
+    maxRateFIC = []
+    with tqdm(total=len(wes)) as pbar:
+        pool = multiprocessing.Pool(processes=num_processes)
+        results = [pool.apply_async(simulate_we_fic, args=(we, C, N, dt, Tmaxneuronal, fileName, precompute)) for we in wes]
+
+        for result in results:
+            maxRateFIC.append(result.get())
+            pbar.update(1)
+
     fic, = plt.plot(wes, maxRateFIC)
     fic.set_label("FIC")
 
@@ -92,6 +106,10 @@ def plotMaxFrecForAllWe(C, wStart=0, wEnd=6 + 0.001, wStep=0.05,
     plt.xlabel("Global Coupling (G = we)")
     plt.legend()
     plt.show()
+
+    # Termino los procesos
+    pool.close()
+    pool.join()
 
 # ================================================================================================================
 # ================================================================================================================
