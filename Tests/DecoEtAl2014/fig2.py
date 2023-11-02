@@ -21,7 +21,7 @@ import WholeBrain.Integrators.EulerMaruyama as integrator
 integrator.neuronalModel = DMF
 integrator.verbose = False
 # ============== chose a FIC mechanism
-import Utils.FIC.Balance_DecoEtAl2014 as Deco2014Mechanism
+import WholeBrain.Utils.FIC.Balance_DecoEtAl2014 as Deco2014Mechanism
 
 import WholeBrain.Utils.FIC.BalanceFIC as BalanceFIC
 BalanceFIC.integrator = integrator
