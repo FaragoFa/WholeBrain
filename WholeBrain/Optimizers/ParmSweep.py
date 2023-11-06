@@ -50,7 +50,7 @@ def distanceForOne_Parm(currValue, modelParms, NumSimSubjects,
     simulatedBOLDs = {}
     start_time = time.perf_counter()
     for nsub in range(NumSimSubjects):  # trials. Originally it was 20.
-        print(f"   Simulating {label}={currValue} -> subject {nsub}/{NumSimSubjects}!!!")
+        print(f"   Simulating {label}={currValue} -> subject {nsub+1}/{NumSimSubjects}!!!")
         bds = simulateBOLD.simulateSingleSubject().T
         simulatedBOLDs[nsub] = bds
 
