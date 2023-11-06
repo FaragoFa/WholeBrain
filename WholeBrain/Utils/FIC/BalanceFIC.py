@@ -27,8 +27,7 @@ verbose = True
 print("Going to use the Balanced J9 (FIC) mechanism...")
 
 
-import WholeBrain.Utils.FIC.Balance_DecoEtAl2014 as Balance_DecoEtAl2014
-balancingMechanism = Balance_DecoEtAl2014
+balancingMechanism = None
 
 
 # =====================================
