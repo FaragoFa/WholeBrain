@@ -62,7 +62,7 @@ def distanceForOne_Parm(currValue, modelParms, NumSimSubjects,
 
 def distanceForAll_Parms(tc,
                          Parms,  # wStart=0.0, wEnd=6.0, wStep=0.05,
-                         modelParms, NumSimSubjects,
+                         NumSimSubjects,
                          distanceSettings,  # This is a dictionary of {name: (distance module, apply filters bool)}
                          parmLabel='',
                          outFilePath=None,
