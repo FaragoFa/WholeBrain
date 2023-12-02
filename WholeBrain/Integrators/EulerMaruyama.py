@@ -88,6 +88,8 @@ def recordBookkeeping(t, obsVars, curr_obsVars):
 # --------------------------------------------------------------------------
 sigma = 0.01
 clamping = True
+clamping_min = 0.
+clamping_max = 1.
 @jit(nopython=True)
 def integrationStep(simVars, dt, stimulus):  #, curr_obsVars, doBookkeeping):
     numSimVars = simVars.shape[0]; N = simVars.shape[1]
@@ -95,8 +97,8 @@ def integrationStep(simVars, dt, stimulus):  #, curr_obsVars, doBookkeeping):
     dvars = dvars_obsVars[0]; obsVars = dvars_obsVars[1]  # cannot use unpacking in numba...
     simVars = simVars + dt * dvars + np.sqrt(dt) * sigma * randn(numSimVars,N)  # Euler-Maruyama integration.
     if clamping:
-        simVars = np.where(simVars > 1., 1., simVars)  # clamp values to 0..1
-        simVars = np.where(simVars < 0., 0., simVars)
+        simVars = np.where(simVars > clamping_max, clamping_max, simVars)  # clamp values to 0..1
+        simVars = np.where(simVars < clamping_min, clamping_min, simVars)
     return simVars, obsVars
 
 
