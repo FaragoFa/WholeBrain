@@ -4,7 +4,7 @@
 # =================================================================
 # =================================================================
 import matplotlib as plt
-from Utils.Plotting.plot3DBrain import *
+from WholeBrain.Utils.Plotting.plot3DBrain import *
 
 
 # =================================================================

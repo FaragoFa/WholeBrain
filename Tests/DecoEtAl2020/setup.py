@@ -24,7 +24,7 @@ from numba import jit
 # Setup for ...-based DMF simulation!!!
 # import WholeBrain.Models.DynamicMeanField as neuronalModel
 import WholeBrain.Models.Transcriptional as neuronalModel
-import Models.Couplings as Couplings
+import WholeBrain.Models.Couplings as Couplings
 # ----------------------------------------------
 import WholeBrain.Integrators.EulerMaruyama as scheme
 scheme.neuronalModel = neuronalModel
@@ -56,9 +56,9 @@ filters.flp = .008  # lowpass frequency of filter
 filters.fhi = .08   # highpass
 filters.TR = 0.754  # sampling interval
 # ----- Import observables
-import Observables.FC as FC
-import Observables.swFCD as swFCD
-import Observables.GBC as GBC
+import WholeBrain.Observables.FC as FC
+import WholeBrain.Observables.swFCD as swFCD
+import WholeBrain.Observables.GBC as GBC
 # --------------------------------------------------------------------------
 #  End modules setup...
 # --------------------------------------------------------------------------

@@ -24,7 +24,7 @@ def plot_from_fMRI(ts,
     phFCD.save_file = save_file
     M = phFCD.from_fMRI(ts)
     phIntMatr = sio.loadmat(save_file)
-    import Utils.Plotting.plotSC as plotSC
+    import WholeBrain.Utils.Plotting.plotSC as plotSC
     plotSC.plotFancyMatrix(phIntMatr[phFCD.name], axisName=axisName, matrixName=matrixName, showAxis=showAxis)
     # ============= Restore state at phFCD, do not keep saving anything!
     phFCD.saveMatrix = False

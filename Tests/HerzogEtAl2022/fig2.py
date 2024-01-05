@@ -28,20 +28,20 @@ import scipy.io as sio
 import matplotlib.pyplot as plt
 
 # ============== chose a model
-import Models.DynamicMeanField as DMF
-import Models.Couplings as Couplings
+import WholeBrain.Models.DynamicMeanField as DMF
+import WholeBrain.Models.Couplings as Couplings
 # ============== chose and setup an integrator
-import Integrators.EulerMaruyama as scheme
+import WholeBrain.Integrators.EulerMaruyama as scheme
 scheme.neuronalModel = DMF
-import Integrators.Integrator as integrator
+import WholeBrain.Integrators.Integrator as integrator
 integrator.integrationScheme = scheme
 integrator.neuronalModel = DMF
 integrator.verbose = False
 # ============== chose a FIC mechanism
-import Utils.FIC.BalanceFIC as BalanceFIC
+import WholeBrain.Utils.FIC.BalanceFIC as BalanceFIC
 BalanceFIC.integrator = integrator
-import Utils.FIC.Balance_Herzog2022 as Herzog2022Mechanism
-import Utils.FIC.Balance_DecoEtAl2014 as Deco2014Mechanism
+import WholeBrain.Utils.FIC.Balance_Herzog2022 as Herzog2022Mechanism
+import WholeBrain.Utils.FIC.Balance_DecoEtAl2014 as Deco2014Mechanism
 BalanceFIC.balancingMechanism = Herzog2022Mechanism  # default behaviour for this project
 
 

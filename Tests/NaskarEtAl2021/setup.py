@@ -28,15 +28,15 @@ from numba import jit
 import WholeBrain.Models.Naskar as Naskar
 import WholeBrain.Models.Couplings as Couplings
 # ----------------------------------------------
-import Integrators.EulerMaruyama as scheme
+import WholeBrain.Integrators.EulerMaruyama as scheme
 scheme.sigma = 0.001
 scheme.neuronalModel = Naskar
-import Integrators.Integrator as integrator
+import WholeBrain.Integrators.Integrator as integrator
 integrator.integrationScheme = scheme
 integrator.neuronalModel = Naskar
 integrator.verbose = False
-import Utils.BOLD.BOLDHemModel_Stephan2008 as Stephan2008
-import Utils.simulate_SimAndBOLD as simulateBOLD
+import WholeBrain.Utils.BOLD.BOLDHemModel_Stephan2008 as Stephan2008
+import WholeBrain.Utils.simulate_SimAndBOLD as simulateBOLD
 simulateBOLD.integrator = integrator
 simulateBOLD.BOLDModel = Stephan2008
 
