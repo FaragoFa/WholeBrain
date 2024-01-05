@@ -19,7 +19,7 @@ def printAveragesAndStd(dataset):
     print("\nAverages and Std Dev:")
     if isinstance(dataset, dict):
         for setToPlot in dataset:
-            print(f'{setToPlot}: avg={np.average(dataset[setToPlot])}, stdev={np.std(dataset[setToPlot])}')
+            print(f'{setToPlot}: avg={np.average(dataset[setToPlot])}, stdev={np.std(dataset[setToPlot])}, len={len(dataset[setToPlot])}')
     else:
         for pos, setToPlot in enumerate(dataset.T):
             print(f'{pos}: avg={np.average(setToPlot)}, stdev={np.std(setToPlot)}')
@@ -209,7 +209,7 @@ def padEqualLengthDicts(tests):
     return fixed
 
 
-def plotComparisonAcrossLabelsAx(ax, tests, columnLables=None, graphLabel='', pairs=None):
+def plotComparisonAcrossLabels2Ax(ax, tests, columnLables=None, graphLabel='', pairs=None):
     printAveragesAndStd(tests)
     if columnLables is None:
         columnLables = tests.keys()
@@ -229,7 +229,7 @@ def plotComparisonAcrossLabelsAx(ax, tests, columnLables=None, graphLabel='', pa
 
 def plotComparisonAcrossLabels2(tests, columnLables=None, graphLabel='', pairs=None):
     fig, ax = plt.subplots()
-    plotComparisonAcrossLabelsAx(ax, tests, columnLables=columnLables, graphLabel=graphLabel, pairs=pairs)
+    plotComparisonAcrossLabels2Ax(ax, tests, columnLables=columnLables, graphLabel=graphLabel, pairs=pairs)
     plt.show()
 
 

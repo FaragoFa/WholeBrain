@@ -28,16 +28,20 @@ import scipy.io as sio
 import matplotlib.pyplot as plt
 
 # ============== chose a model
-import WholeBrain.Models.DynamicMeanField as DMF
+import Models.DynamicMeanField as DMF
+import Models.Couplings as Couplings
 # ============== chose and setup an integrator
-import WholeBrain.Integrators.EulerMaruyama as integrator
+import Integrators.EulerMaruyama as scheme
+scheme.neuronalModel = DMF
+import Integrators.Integrator as integrator
+integrator.integrationScheme = scheme
 integrator.neuronalModel = DMF
 integrator.verbose = False
 # ============== chose a FIC mechanism
-import WholeBrain.Utils.FIC.BalanceFIC as BalanceFIC
+import Utils.FIC.BalanceFIC as BalanceFIC
 BalanceFIC.integrator = integrator
-import WholeBrain.Utils.FIC.Balance_Herzog2022 as Herzog2022Mechanism
-import WholeBrain.Utils.FIC.Balance_DecoEtAl2014 as Deco2014Mechanism
+import Utils.FIC.Balance_Herzog2022 as Herzog2022Mechanism
+import Utils.FIC.Balance_DecoEtAl2014 as Deco2014Mechanism
 BalanceFIC.balancingMechanism = Herzog2022Mechanism  # default behaviour for this project
 
 
@@ -114,7 +118,7 @@ def plotMaxFreq(ax, wes, label, shuffle=False, averaging=False, fileName=None):
         if averaging:
             balancedJ = np.average(balancedJ) * np.ones(C.shape[0])
         integrator.neuronalModel.setParms({'J': balancedJ})
-        integrator.recompileSignatures()
+        # integrator.recompileSignatures()
         v = integrator.simulate(dt, Tmaxneuronal)[:,1,:]  # [1] is the output from the excitatory pool, in Hz.
         maxRate[kk] = np.max(np.mean(v,0))
         print(f"MaxRate: {label} => {maxRate[kk]}")
@@ -124,6 +128,8 @@ def plotMaxFreq(ax, wes, label, shuffle=False, averaging=False, fileName=None):
 
 def plotMaxFrecForAllWe(ax, C, wes):
     DMF.setParms({'SC': C})
+    DMF.couplingOp.setParms(C)
+    # DMF.couplingOp = Couplings.instantaneousDirectCoupling(C)
     N = C.shape[0]
     # DMF.lambda = 0.  # make sure no long-range feedforward inhibition (FFI) is computed
 

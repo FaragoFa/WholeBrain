@@ -32,13 +32,15 @@
 # ==========================================================================
 import numpy as np
 from numba import jit
+from numba import int32, double   # import the types
+from numba.experimental import jitclass
 
 print("Going to use the supercritical Hopf bifurcation neuronal model...")
 
 def recompileSignatures():
     # Recompile all existing signatures. Since compiling isn’t cheap, handle with care...
     # However, this is "infinitely" cheaper than all the other computations we make around here ;-)
-    dfun.recompile()
+    # dfun.recompile()
     pass
 
 # ==========================================================================
@@ -81,6 +83,8 @@ def setParms(modelParms):
     global G, SC, a, omega
     if 'we' in modelParms:
         G = modelParms['we']
+    if 'G' in modelParms:
+        G = modelParms['G']
     if 'SC' in modelParms:
         SC = modelParms['SC']
         initSim(SC.shape[0])
@@ -91,39 +95,67 @@ def setParms(modelParms):
 
 
 def getParm(parmList):
-    if 'we' in parmList:
+    if 'we' in parmList or 'G' in parmList:
         return G
     if 'SC' in parmList:
         return SC
     return None
 
 
+# -----------------------------------------------------------------------------
 # ----------------- supercritical Hopf bifurcation model ----------------------
+# -----------------------------------------------------------------------------
+
+# ----------------- Coupling ----------------------
+@jitclass([('SCT', double[:, :]),
+           ('ink', double[:])])
+class instantaneousDifferenceCoupling:
+    def __init__(self):
+        self.SCT = np.empty((1,1))
+        self.ink = np.empty((1))
+
+    def setParms(self, SC):
+        self.SCT = SC.T
+        self.ink = SCT.sum(axis=1)   # Careful: component 2 in Matlab is component 1 in Python
+
+    def couple(self, x):
+        return np.dot(self.SCT, x) - self.ink * x
+
+
+couplingOp = instantaneousDifferenceCoupling()
+
+
+# ----------------- Model ----------------------
 @jit(nopython=True)
-def dfun(simVars, p):  # p is the stimulus...?
+def dfun(simVars, coupling, I_external):
     x = simVars[0]; y = simVars[1]
-    pC = p + 0j
+    pC = I_external + 0j
     # --------------------- From Gus' original code:
     # First, we need to compute the term (in pseudo-LaTeX notation):
-    #               G sum_i SC_ij (x_i - x_j) =
-    #               G (Sum_i sC_ij x_i + Sum_i SC_ij xj) =
-    #               G ((Sum_i SC_ij x_i) + (Sum_i SC_ij) xj)   <- adding some unnecessary parenthesis.
-    # This is implemented as:
-    # suma = wC*z - sumC.*z                 # this is sum(Cij*xi) - sum(Cij)*xj, all multiplied by G
-    #      = G * SC * z - sum(G*SC,2) * z   # Careful, component 2 in Matlab is component 1 in Python...
-    #      = G * (SC*z - sum(SC,2)*z)
+    #       G Sum_i SC_ij (x_i - x_j) =
+    #       G (Sum_i SC_ij x_i + Sum_i SC_ij x_j) =
+    #       G ((Sum_i SC_ij x_i) + (Sum_i SC_ij) x_j)   <- adding some unnecessary parenthesis.
+    # This is implemented in Gus' code as:
+    #       wC = we * Cnew;  # <- we is G in the paper, Cnew is SC -> wC = G * SC
+    #       sumC = repmat(sum(wC, 2), 1, 2);  # <- for sum Cij * xj == sum(G*SC,2)
+    # Thus, we have that:
+    #       suma = wC*z - sumC.*z                 # this is sum(Cij*xi) - sum(Cij)*xj, all multiplied by G
+    #            = G * SC * z - sum(G*SC,2) * z   # Careful, component 2 in Matlab is component 1 in Python...
+    #            = G * (SC*z - sum(SC,2)*z)
     # And now the rest of it...
-    # Remember that, in Gus' code, omega = repmat(2*pi*f_diff',1,2); omega(:,1) = -omega(:,1); so here I will
-    # call omega(1)=-omega, and the other component as + omega
-    # zz = z(:,end:-1:1)  # <- flipped z, because (x.*x + y.*y)     # Thus, this zz vector is (y,x)
-    # dz = a.*z + zz.*omega - z.*(z.*z+zz.*zz) + suma               # original formula in the code, using complex numbers z instead of x and y...
-    #    = zz * omega   +  z  * (a -  z.* z  - zz.* zz) + suma =    # I will be using vector notation here to simplify ASCII formulae... ;-)
-    #    = (y)*(-omega) + (x) * (a - (x)*(x) - (y)*(y)) + suma      # here, (x)*(x) should actually be (x) * (x,y)
-    #    =  x *(+omega)    y          y * y     x * x               #        y   y                     (y)
+    # Remember that, in Gus' code,
+    #       omega = repmat(2*pi*f_diff',1,2);
+    #       omega(:,1) = -omega(:,1);
+    # so here I will call omega(1)=-omega, and the other component as + omega
+    #       zz = z(:,end:-1:1)  # <- flipped z, because (x.*x + y.*y)     # Thus, this zz vector is (y,x)
+    #       dz = a.*z + zz.*omega - z.*(z.*z+zz.*zz) + suma               # original formula in the code, using complex numbers z instead of x and y...
+    #          = zz * omega   +  z  * (a -  z.* z  - zz.* zz) + suma =    # I will be using vector notation here to simplify ASCII formulae... ;-)
+    #          = (y)*(-omega) + (x) * (a - (x)*(x) - (y)*(y)) + suma      # here, (x)*(x) should actually be (x) * (x,y)
+    #          =  x *(+omega)    y          y * y     x * x               #        y   y                     (y)
     # ---------------------
     # Calculate the input to nodes due to couplings
-    xcoup = np.dot(SCT,x) - ink * x  # sum(Cij*xi) - sum(Cij)*xj
-    ycoup = np.dot(SCT,y) - ink * y  #
+    xcoup = coupling.couple(x)  # np.dot(SCT,x) - ink * x  # this is sum(Cij*xi) - sum(Cij)*xj
+    ycoup = coupling.couple(y)  # np.dot(SCT,y) - ink * y  #
     # Integration step
     dx = (a - x**2 - y**2) * x - omega * y + G * xcoup + pC.real
     dy = (a - x**2 - y**2) * y + omega * x + G * ycoup + pC.imag

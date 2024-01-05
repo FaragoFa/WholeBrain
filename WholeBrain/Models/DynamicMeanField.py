@@ -10,6 +10,8 @@
 import numpy as np
 from numba import jit
 
+import WholeBrain.Integrators.integr_utils as utils
+
 print("Going to use the Dynamic Mean Field (DMF) neuronal model...")
 
 
@@ -19,6 +21,9 @@ def recompileSignatures():
     phie.recompile()
     phii.recompile()
     dfun.recompile()
+    # coupling.recompile()
+    pass
+
 
 # ==========================================================================
 # ==========================================================================
@@ -27,16 +32,75 @@ def recompileSignatures():
 # --------------------------------------------------------------------------
 taon = 100.
 taog = 10.
-gamma_e = 0.641 / 1000
-gamma_i = 1. / 1000.
+gamma_e = 0.641
+gamma_i = 1.
 J_NMDA = 0.15       # [nA] NMDA current
-I0 = 0.382  #.397  # [nA] overall effective external input
+I0 = 0.382   #.397  # [nA] overall effective external input
 Jexte = 1.
 Jexti = 0.7
 w = 1.4
 we = 2.1        # Global coupling scaling (G in the paper)
 SC = None       # Structural connectivity (should be provided externally)
 
+
+# --------------------------------------------------------------------------
+# Simulation variables
+# @jit(nopython=True)
+def initSim(N):
+    Se = 0.001 * np.ones(N)  # Initialize sn (S^E in the paper)
+    Si = 0.001 * np.ones(N)  # Initialize sg (S^I in the paper)
+    return np.stack((Se, Si))
+
+
+
+
+# --------------------------------------------------------------------------
+# Variables of interest, needed for bookkeeping tasks...
+# Se, excitatory synaptic activity
+# re, excitatory firing rate
+# @jit(nopython=True)
+def numObsVars():  # Returns the number of observation vars used, here xn and rn
+    return 2
+
+
+# --------------------------------------------------------------------------
+# Set the parameters for this model
+def setParms(modelParms):
+    global we, J, SC
+    if 'we' in modelParms:
+        we = modelParms['we']
+    if 'G' in modelParms:  # I've made this mistake too many times...
+        we = modelParms['G']
+    if 'J' in modelParms:
+        J = modelParms['J']
+    if 'SC' in modelParms:
+        SC = modelParms['SC']
+
+
+def getParm(parmName):
+    if 'we' in parmName or 'G' in parmName:  # I've made this mistake too many times...
+        return we
+    if 'J' in parmName:
+        return J
+    if 'be' in parmName:
+        return be
+    if 'ae' in parmName:
+        return ae
+    if 'SC' in parmName:
+        return SC
+    return None
+
+
+# -----------------------------------------------------------------------------
+# ----------------- Dynamic Mean Field (a.k.a., reducedWongWang) --------------
+# -----------------------------------------------------------------------------
+
+# ----------------- Coumpling ----------------------
+from WholeBrain.Models.Couplings import instantaneousDirectCoupling
+couplingOp = instantaneousDirectCoupling()  # The only one who knows the coupling operation is the model itself!!!
+
+
+# ----------------- Model ----------------------
 # transfer WholeBrain:
 # --------------------------------------------------------------------------
 # transfer function: excitatory
@@ -52,6 +116,7 @@ def phie(x):
     return y/(1.-np.exp(-de*y))
     # else:
     #     return 0
+
 
 # transfer function: inhibitory
 ai = 615.  # [nC^{-1}], g_I in the paper
@@ -71,69 +136,20 @@ def phii(x):
 He = phie
 Hi = phii
 
-# --------------------------------------------------------------------------
-# Simulation variables
-# @jit(nopython=True)
-def initSim(N):
-    # sn = 0.001 * np.ones(N)  # Initialize sn (S^E in the paper)
-    # sg = 0.001 * np.ones(N)  # Initialize sg (S^I in the paper)
-    sn_sg = 0.001 * np.ones((2, N))  # Here we initialize with np.ones, but other models use np.zeros...
-    return sn_sg
 
-
-# J = None    # WARNING: In general, J must be initialized outside!
-# def initJ(N):  # A bit silly, I know...
-#     global J
-#     J = np.ones(N)
-
-
-# --------------------------------------------------------------------------
-# Variables of interest, needed for bookkeeping tasks...
-# xn = None  # xn, excitatory synaptic activity
-# rn = None  # rn, excitatory firing rate
-# @jit(nopython=True)
-def numObsVars():  # Returns the number of observation vars used, here xn and rn
-    return 2
-
-
-# --------------------------------------------------------------------------
-# Set the parameters for this model
-def setParms(modelParms):
-    global we, J, SC
-    if 'we' in modelParms or 'G' in modelParms:  # I've made this mistake too many times...
-        we = modelParms['we']
-    if 'J' in modelParms:
-        J = modelParms['J']
-    if 'SC' in modelParms:
-        SC = modelParms['SC']
-
-
-def getParm(parmList):
-    if 'we' in parmList or 'G' in parmList:  # I've made this mistake too many times...
-        return we
-    if 'J' in parmList:
-        return J
-    if 'be' in parmList:
-        return be
-    if 'ae' in parmList:
-        return ae
-    if 'SC' in parmList:
-        return SC
-    return None
-
-
-# ----------------- Dynamic Mean Field (a.k.a., reducedWongWang) ----------------------
 @jit(nopython=True)
-def dfun(simVars, I_external):
-    # global xn, rn
-    sn = simVars[0]; sg = simVars[1]  # should be [sn, sg] = simVars
-    xn = I0 * Jexte + w * J_NMDA * sn + we * J_NMDA * (SC @ sn) - J * sg + I_external  # Eq for I^E (5). I_external = 0 => resting state condition.
-    xg = I0 * Jexti + J_NMDA * sn - sg  # Eq for I^I (6). \lambda = 0 => no long-range feedforward inhibition (FFI)
-    rn = He(xn)  # Calls He(xn). r^E = H^E(I^E) in the paper (7)
-    rg = Hi(xg)  # Calls Hi(xg). r^I = H^I(I^I) in the paper (8)
-    dsn = -sn / taon + (1. - sn) * gamma_e * rn
-    dsg = -sg / taog + rg * gamma_i
-    return np.stack((dsn, dsg)), np.stack((xn, rn))
+def dfun(simVars, coupling, I_external):
+    Se = simVars[0]; Si = simVars[1]  # should be [Se, Si] = simVars
+    Se = utils.doClamping(Se); Si = utils.doClamping(Si)  # Clamping, needed in Deco2014 model and derivatives...
+
+    coupl = coupling.couple(Se)
+    Ie = I0 * Jexte + w * J_NMDA * Se + we * J_NMDA * coupl - J * Si + I_external  # Eq for I^E (5). I_external = 0 => resting state condition.
+    Ii = I0 * Jexti + J_NMDA * Se - Si  # Eq for I^I (6). \lambda = 0 => no long-range feedforward inhibition (FFI)
+    re = He(Ie)  # Calls He(Ie). r^E = H^E(I^E) in the paper (7)
+    ri = Hi(Ii)  # Calls Hi(Ii). r^I = H^I(I^I) in the paper (8)
+    dSe = -Se / taon + (1. - Se) * gamma_e * re/1000.  # divide by 1000 because re is in Hz = 1/second, we need milliseconds!
+    dSi = -Si / taog + gamma_i * ri/1000.
+    return np.stack((dSe, dSi)), np.stack((Ie, re))
 
 
 # ==========================================================================

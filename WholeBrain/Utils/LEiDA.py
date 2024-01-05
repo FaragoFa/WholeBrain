@@ -107,6 +107,7 @@ def clusterEigenvectors(LEigenvect):
 
 # For every subject, calculate the probability of occurrence (or fractional occupancy) of each pattern c
 def calculateProbabilitiesOfOccurrence(clustering, LEigs, numClusters):
+    print('Calculating Probabilities Of Occurrence')
     P = {}
     labels = {}
     for s in LEigs:
@@ -147,6 +148,7 @@ def calculateSwitchingMatrix(labels, numClusters, subset=None):
 
 # Compute the mean lifetimes
 def calculateMeanLifetimes(labels, numClusters):
+    print('Calculating Mean Lifetimes')
     LT = {}
     for s in labels:
         LT[s] = np.zeros(numClusters)
@@ -176,6 +178,7 @@ def calculateMeanLifetimes(labels, numClusters):
 
 # Analyse the Clustering results
 def analyseClustering(clustering, LEigs):
+    print('Start analyseClustering!!!')
     numClusters = clustering['centers'].shape[0]
 
     # compute the labels and probabilities of occurrence of each pattern c

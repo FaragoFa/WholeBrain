@@ -11,10 +11,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import WholeBrain.Models.JansenRit as JR
-import WholeBrain.Integrators.Euler as integrator
-
+import Integrators.Euler as scheme
+scheme.neuronalModel = JR
+import Integrators.Integrator as integrator
+integrator.integrationScheme = scheme
 integrator.neuronalModel = JR
-integrator.clamping = False
 
 # In the original [JR_1995] paper, the random white noise input p(t) had an amplitude
 # varying between 120 and 320 pulses per second.
@@ -25,12 +26,11 @@ stimuli.ampHi = 320.
 integrator.stimuli = stimuli
 
 
-def recompileSignatures():
-    # Recompile all existing signatures. Since compiling isn’t cheap, handle with care...
-    # However, this is "infinitely" cheaper than all the other computations we make around here ;-)
-    # print("\n\nRecompiling signatures!!!")
-    integrator.recompileSignatures()
-    JR.recompileSignatures()
+# def recompileSignatures():
+#     # Recompile all existing signatures. Since compiling isn’t cheap, handle with care...
+#     # However, this is "infinitely" cheaper than all the other computations we make around here ;-)
+#     # print("\n\nRecompiling signatures!!!")
+#     integrator.recompileSignatures()
 
 
 # Integration parms...
@@ -39,9 +39,9 @@ tmax = 3.
 integrator.ds = 1e-3
 Tmaxneuronal = int((tmax+dt))
 N = 1
-Conn = np.zeros((N,N))
-JR.setParms({'SC':Conn})
-
+Conn = np.zeros((N,N), dtype=np.double)
+JR.setParms({'SC': Conn})
+JR.couplingOp.setParms(Conn)
 
 plt.rcParams.update({'font.size': 16})
 fig, axs = plt.subplots(6, sharex=True)
@@ -52,7 +52,7 @@ for pos, C in enumerate([68., 128., 135., 270., 675., 1350.]):
     # Simulate for a given JR.C
     JR.setParms({'C':C})
     # JR.initBookkeeping(N, tmax)
-    recompileSignatures()
+    # recompileSignatures()
     v = integrator.simulate(dt, Tmaxneuronal)
     # v = JR.returnBookkeeping()
 

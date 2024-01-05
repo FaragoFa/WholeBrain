@@ -23,9 +23,14 @@ from numba import jit
 # Setup for Serotonin 2A-based DMF simulation!!!
 # This is a wrapper for the DMF (calls it internally, but before switches the
 # two gain functions phie and phii for the right ones...
+import WholeBrain.Models.DynamicMeanField as DMF
 import WholeBrain.Models.serotonin2A as serotonin2A
+import WholeBrain.Models.Couplings as Couplings
 # ----------------------------------------------
-import WholeBrain.Integrators.EulerMaruyama as integrator
+import WholeBrain.Integrators.EulerMaruyama as scheme
+scheme.neuronalModel = serotonin2A
+import WholeBrain.Integrators.Integrator as integrator
+integrator.integrationScheme = scheme
 integrator.neuronalModel = serotonin2A
 integrator.verbose = False
 import WholeBrain.Utils.BOLD.BOLDHemModel_Stephan2007 as Stephan2007
@@ -40,9 +45,12 @@ optim1D.simulateBOLD = simulateBOLD
 optim1D.integrator = integrator
 
 # --------------------------------------------------------------------------
-# FIC mechanism
+# chose a FIC mechanism
 import WholeBrain.Utils.FIC.BalanceFIC as BalanceFIC
 BalanceFIC.integrator = integrator
+import WholeBrain.Utils.FIC.Balance_DecoEtAl2014 as Deco2014Mechanism
+BalanceFIC.balancingMechanism = Deco2014Mechanism  # default behaviour for this project
+
 
 # --------------------------------------------------------------------------
 # Filters and Observables
@@ -55,8 +63,8 @@ filters.fhi = .1                          # highpass
 filters.TR = 2.                           # TR
 
 # import observables
-import WholeBrain.Observables.FC as FC
-import WholeBrain.Observables.swFCD as swFCD
+import Observables.FC as FC
+import Observables.swFCD as swFCD
 
 # --------------------------------------------------------------------------
 # setp up IDs...
@@ -82,12 +90,12 @@ def initRandom():
     np.random.seed(3)  # originally set to 13
 
 
-def recompileSignatures():
-    # Recompile all existing signatures. Since compiling isn’t cheap, handle with care...
-    # However, this is "infinitely" cheaper than all the other computations we make around here ;-)
-    print("\n\nRecompiling signatures!!!")
-    serotonin2A.recompileSignatures()
-    integrator.recompileSignatures()
+# def recompileSignatures():
+#     # Recompile all existing signatures. Since compiling isn’t cheap, handle with care...
+#     # However, this is "infinitely" cheaper than all the other computations we make around here ;-)
+#     print("\n\nRecompiling signatures!!!")
+#     serotonin2A.recompileSignatures()
+#     integrator.recompileSignatures()
 
 
 def LR_version_symm(TC):
@@ -120,12 +128,13 @@ print(f"Loading {inFilePath}/all_SC_FC_TC_76_90_116.mat")
 sc90 = sio.loadmat(inFilePath+'/all_SC_FC_TC_76_90_116.mat')['sc90']
 C = sc90/np.max(sc90[:])*0.2  # Normalization...
 serotonin2A.setParms({'SC': C})  # Set the model with the SC
+serotonin2A.couplingOp.setParms(C)
 
 # Load Regional Drug Receptor Map
 print(f'Loading {inFilePath}/mean5HT2A_bindingaal.mat')
 mean5HT2A_aalsymm = sio.loadmat(inFilePath+'/mean5HT2A_bindingaal.mat')['mean5HT2A_aalsymm']
 serotonin2A.Receptor = (mean5HT2A_aalsymm[:,0]/np.max(mean5HT2A_aalsymm[:,0])).flatten()
-recompileSignatures()
+# recompileSignatures()
 
 #load fMRI data
 print(f"Loading {inFilePath}/LSDnew.mat")
@@ -141,7 +150,7 @@ print(f"Simulating {NumSubjects} subjects!")
 # Sets the wgaine and wgaini to 0, but using the standard protocol...
 # We initialize both to 0, so we have Placebo conditions.
 serotonin2A.setParms({'S_E':0., 'S_I':0.})
-recompileSignatures()
+# recompileSignatures()
 
 tc_transf_PLA = transformEmpiricalSubjects(tc_aal, PLACEBO_cond, NumSubjects)  # PLACEBO
 # FCemp_cotsampling_PLA = G_optim.processEmpiricalSubjects(tc_transf_PLA, distanceSettings, "Data_Produced/SC90/fNeuro_emp_PLA.mat")

@@ -5,14 +5,15 @@
 #  From the original code:
 # --------------------------------------------------------------------------
 #   
-#  Computes simulations with the Dynamic Mean Field Model (DMF) using 
+#  Computes SIMULATIONS of Placebo and LSD with the Dynamic Mean Field Model (DMF) using
 #  Feedback Inhibitory Control (FIC) and Regional Drug Receptor Modulation (RDRM):
-#
 #  - the optimal coupling (we=2.1) for fitting the placebo condition 
 #  - the optimal neuromodulator gain for fitting the LSD condition (wge=0.2)
 #
-#  Taken from the code (Code_Figure3.m) from:
+#  Before this, needs the results computed in
+#   - pipeline_fgain_PlaceboLSD.py to get the we=2.1 value...
 #
+#  Taken from the code (Code_Figure3.m) from:
 #  [DecoEtAl_2018] Deco,G., Cruzat,J., Cabral, J., Knudsen,G.M., Carhart-Harris,R.L., Whybrow,P.C.,
 #       Whole-brain multimodal neuroimaging model using serotonin receptor maps explain non-linear functional effects of LSD
 #       Logothetis,N.K. & Kringelbach,M.L. (2018) Current Biology
@@ -32,9 +33,12 @@ import time
 # --------------------------------------------------------------------------
 from setup import *
 
-import simulateFCD as simulateFCD
-simulateFCD.integrator = integrator
-simulateFCD.simModel = simulateBOLD
+import WholeBrain.Observables.swFCD as FCD
+
+# import simulateFCD as simulateFCD
+# import WholeBrain.Utils.simulate_SimAndBOLD as simulateFCD
+# simulateFCD.integrator = integrator
+# simulateFCD.simModel = simulateBOLD
 # --------------------------------------------------------------------------
 #  End setup...
 # --------------------------------------------------------------------------
@@ -59,9 +63,28 @@ serotonin2A.setParms(balancedG)
 # sets the wgaine and wgaini, but using the standard protocol...
 # Placebo conditions (both are 0), to calibrate the J's.
 serotonin2A.setParms({'S_E':0., 'S_I':0.})
-recompileSignatures()
+# recompileSignatures()
 
 initRandom()
+
+
+# ============================================================================
+# simulates the neuronal activity + BOLD + FCD for NumSubjects subjects
+# ============================================================================
+def simulate(NumSubjects):
+    print('Subject:', 0)
+    bds = simulateBOLD.simulateSingleSubject()
+    cot = FCD.from_fMRI(bds.T)
+    cotsampling = np.zeros([NumSubjects, cot.size])
+    cotsampling[0] = cot
+
+    for nsub in range(1,NumSubjects):
+        print('Subject:', nsub)
+        # Compute the FCD correlations.
+        bds = simulateBOLD.simulateSingleSubject()
+        cotsampling[nsub] = FCD.from_fMRI(bds.T)  # Compute the FCD correlations
+
+    return cotsampling
 
 
 # ============================================================================
@@ -73,10 +96,11 @@ if not Path(pla_path).is_file():
     print("\n\nSIMULATION OF OPTIMAL PLACEBO")
     # sets the wgaine and wgaini, but using the standard protocol... S_E = 0 for placebo, 0.2 for LSD
     serotonin2A.setParms({'S_E':0., 'S_I':0.})
-    recompileSignatures()
+    # recompileSignatures()
 
+    # ------------- Simulate!
     start_time = time.clock()
-    cotsampling_pla_s = simulateFCD.simulate(NumSubjects, C)
+    cotsampling_pla_s = simulate(NumSubjects, C)
     print("\n\n--- TOTAL TIME: {} seconds ---\n\n".format(time.clock() - start_time))
 
     sio.savemat(pla_path, {'cotsampling_pla_s': cotsampling_pla_s})  # save FCD_values_placebo cotsampling_pla_s
@@ -93,11 +117,11 @@ if True: #not Path(lsd_path).is_file():
     # SIMULATION OF OPTIMAL LSD fit
     print("\n\nSIMULATION OF OPTIMAL LSD fit ")
     # sets the wgaine and wgaini, but using the standard protocol... S_E = 0 for placebo, 0.2 for LSD
-    serotonin2A.setParms({'S_E':0.2, 'S_I':0.})
-    recompileSignatures()
+    serotonin2A.setParms({'S_E': 0.2, 'S_I': 0.})
 
+    # ------------- Simulate!
     # start_time = time.clock()
-    cotsampling_lsd_s = simulateFCD.simulate(NumSubjects)
+    cotsampling_lsd_s = simulate(NumSubjects)
     # print("\n\n--- TOTAL TIME: {} seconds ---\n\n".format(time.clock() - start_time))
 
     sio.savemat(lsd_path, {'cotsampling_lsd_s': cotsampling_lsd_s})  # save FCD_values_lsd cotsampling_lsd_s
