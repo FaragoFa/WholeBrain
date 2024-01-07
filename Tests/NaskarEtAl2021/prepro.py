@@ -43,7 +43,7 @@ def prepro_G_Optim():
                         }
 
     wStart = 0.
-    step = 0.01  # 0.01
+    step = 0.1  # 0.01
     wEnd = 2. + step
     Gs = np.arange(wStart, wEnd, step)  # 100 values values for constant G. Originally was np.arange(0,2.5,0.025)
 

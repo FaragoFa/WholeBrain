@@ -29,7 +29,7 @@ from pathlib import Path
 
 from setup import *
 
-filePath = outFilePath + '/NaskarEtAl2021_fneuro.mat'
+filePath = outFilePath + 'NaskarEtAl2021_fneuro.mat'
 if not Path(filePath).is_file():
     import prepro as prepro
     prepro.prepro_G_Optim()
