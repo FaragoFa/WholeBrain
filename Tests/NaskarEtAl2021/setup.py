@@ -28,8 +28,9 @@ from numba import jit
 import WholeBrain.Models.Naskar as Naskar
 import WholeBrain.Models.Couplings as Couplings
 # ----------------------------------------------
-import WholeBrain.Integrators.EulerMaruyama as scheme
-scheme.sigma = 0.001
+# import WholeBrain.Integrators.EulerMaruyama as scheme
+import WholeBrain.Integrators.Euler as scheme
+scheme.sigma = 0.001  # np.array([0.001, 0.001, 0.])
 scheme.neuronalModel = Naskar
 import WholeBrain.Integrators.Integrator as integrator
 integrator.integrationScheme = scheme
@@ -89,8 +90,8 @@ FC.findMinMax = FC.defaultMeasure.findMinMax
 # --------------------------------------------------------------------------
 # File loading…
 # --------------------------------------------------------------------------
-inFilePath = '../../../Neuronas/Datos/Datasets/StructuralConnectivity'
-outFilePath = '../../../Neuronas/Datos/Results/Results_test2/'
+inFilePath = 'data/'
+outFilePath = '../../Data_Produced/Tests/NaskarEtAl2021/'
 
 
 # ==================================================================================

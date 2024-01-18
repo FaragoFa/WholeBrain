@@ -84,12 +84,10 @@ def integrationLoop(dt, Tmaxneuronal, simVars, doBookkeeping, curr_obsVars, coup
 
 # # @jit(nopython=True)
 def integrate(dt, Tmaxneuronal, simVars, doBookkeeping = True):
-    # numSimVars = simVars.shape[0]
+    # integrationScheme.buildNoise()
     recompileSignatures()
     N = simVars.shape[1]  # N = neuronalModel.SC.shape[0]  # size(C,1) #N = CFile["Order"].shape[1]
     curr_obsVars = initBookkeeping(N, Tmaxneuronal)
-    if neuronalModel.couplingOp is None:
-        raise Exception('neuronalModel.couplingOp cannot be None!')
     integrResult = integrationLoop(dt, Tmaxneuronal, simVars, doBookkeeping, curr_obsVars, neuronalModel.couplingOp)
     return integrResult
 

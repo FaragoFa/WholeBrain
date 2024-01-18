@@ -15,7 +15,6 @@
 # --------------------------------------------------------------------------------------
 import pickle
 
-from setup import *
 from Progression.plotting_functions import *
 
 # --------------------------------------------------------------------------------------
@@ -27,11 +26,33 @@ bands = [[0.008,12]]  # frequency bands to analyze
 # --------------------------------------------------------------------------------------
 # plot settings
 # --------------------------------------------------------------------------------------
+loadDataPath = '../data/'
 lobe_file = loadDataPath + 'LobeIndex.csv';
+dataSavePath = '../../../Data_Produced/Progression/'
+plotsPath = '../../../Results/Progression/'
+
+# file paths, where to save dynamics (oscillations) and spreading (heterodimer model) solutions
+file_name = 'alzheimers_default'
+# dyn_save_path = dataSavePath + file_name + '_neural-original.p'
+# spread_save_path = dataSavePath + file_name + '_spread-original.p'
+dyn_save_path = dataSavePath + file_name + '_neural-original-noDelays.p'
+spread_save_path = dataSavePath + file_name + '_spread-original-noDelays.p'
+
 xlimit = t_stamps[-1];
 wiggle = 0.1  # wiggles trials on same x tick
-plt.style.use('seaborn-v0_8-muted')  # seaborn-muted
+plt.style.use('seaborn-muted')
+lobe_names = ['frontal', 'parietal', 'occipital', 'temporal', 'limbic', 'basal-ganglia', 'brain-stem']
+# lobe_file = loadDataPath + 'LobeIndex.csv'; xlimit = t_stamps[-1]; plt.style.use('seaborn-muted')
 colours = sns.color_palette('hls', len(lobe_names)+4)
+
+# define brain regions (LobeIndex_I.txt)
+regions = [[] for _ in range(len(lobe_names))]
+with open(loadDataPath + 'LobeIndex_I.txt') as f:
+    node = 0
+    for line in f:
+        lobe = int(float(line.strip()))-1
+        regions[lobe].append(node)
+        node += 1
 
 # --------------------------------------------------------------------------------------
 # LOAD SOLUTIONS
@@ -39,11 +60,9 @@ colours = sns.color_palette('hls', len(lobe_names)+4)
 # --------------------------------------------------------------------------------------
 gamma = 0.0
 print('\nLoading solutions...')
-dyn_save_file = dyn_save_path.format(f'gamme={gamma}')
-dyn_sols = pickle.load(open(dyn_save_file, "rb"))
-spread_save_file = spread_save_path.format(f'gamme={gamma}')
-spread_sol = pickle.load(open(spread_save_file, "rb"))
-print(f"Done Loading:\n   {dyn_save_file}\n   {spread_save_file}).")
+dyn_sols = pickle.load(open(dyn_save_path.format(f'gamme={gamma}'), "rb"))
+spread_sol = pickle.load(open(spread_save_path.format(f'gamme={gamma}'), "rb"))
+print('Done.')
 
 # --------------------------------------------------------------------------------------
 # PLOT
