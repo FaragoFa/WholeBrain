@@ -90,8 +90,9 @@ FC.findMinMax = FC.defaultMeasure.findMinMax
 # --------------------------------------------------------------------------
 # File loading…
 # --------------------------------------------------------------------------
-inFilePath = 'data/'
-outFilePath = '../../Data_Produced/Tests/NaskarEtAl2021/'
+inFilePath = '../../../Neuronas/Datos/Datasets/StructuralConnectivity'
+outFilePath = '../../../NeuronasDatos/Results/Results_test2'
+
 
 
 # ==================================================================================

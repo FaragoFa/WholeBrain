@@ -58,7 +58,7 @@ r0 = 25  # (s)^-1 --> slope r0 of intravascular relaxation rate R_iv as a functi
          # saturation Y:  R_iv = r0*[(1-Y)-(1-Y0)]. This value of r0 from [Stephan et al. 2007]
 theta0 = 40.3  # (s)^-1, frequency offset at the outer surface of magnetized vessels
 
-@jit(nopython=True)
+#@jit(nopython=True)
 def BOLDModel(T, x):
     # The Hemodynamic model with one simplified neural activity
     #
