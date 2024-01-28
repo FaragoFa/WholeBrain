@@ -48,28 +48,22 @@ def recompileSignatures():
 # ==========================================================================
 # Dynamic Mean Field (DMF) Model Constants
 # --------------------------------------------------------------------------
-B_e = 0.0066    # ms^-1  backward rate constant for NMDA gating
-B_i = 0.18      # ms^-1  backward rate constant for GABA gating
 t_glu = 7.46    # concentration of glutamate
 t_gaba = 1.82   # concentration of GABA
 We = 1.0        # scaling of external input current to excitatory population
 Wi = 0.7        # scaling of external input current to inhibitory population
 alfa_e = 0.072  # forward rate constant for NMDA gating
 alfa_i = 0.53   # forward rate constant for GABA gating
+B_e = 0.0066    # ms^-1  backward rate constant for NMDA gating
+B_i = 0.18      # ms^-1  backward rate constant for GABA gating
 J_NMDA = 0.15   # [nA] NMDA current
-I0 = 0.382      # .397  # [nA] overall effective external input
+I0 = 0.382      #.397  # [nA] overall effective external input
 gamma = 1.      # Learning rate
 w = 1.4         # weight for recurrent self-excitation in each excitatory population
 rho = 3         # target-firing rate of the excitatory population is maintained at the 3 Hz
 
-
 SC = None       # Structural connectivity (should be provided externally)
 
-# ==========================================================================
-# AD param initialization...
-# --------------------------------------------------------------------------
-M_e = 1.    # WARNING: In general, this must be initialized outside!
-M_i = 1.
 
 # transfer WholeBrain:
 # --------------------------------------------------------------------------
@@ -79,19 +73,28 @@ be = 125.  # = g_E * I^{(E)_{thr}} in the paper = 310 * .403 [nA] = 124.93
 de = 0.16
 @jit(nopython=True)
 def phie(x):
-    y = M_e * (ae*x-be)  # M_e will be set by function set_AD_Burden
+    # in the paper this was g_E * (I^{(E)_n} - I^{(E)_{thr}})
+    # Here, we distribute as g_E * I^{(E)_n} - g_E * I^{(E)_{thr}}, thus...
+    y = (ae*x-be)
+    # if (y != 0):
     return y/(1.-np.exp(-de*y))
+    # else:
+    #     return 0
 
 
 # transfer function: inhibitory
-ai=615.
-bi=177.
-di=0.087
+ai = 615.  # [nC^{-1}], g_I in the paper
+bi = 177.  # = g_I * I^{(I)_{thr}} in the paper = 615 * .288 [nA] = 177.12
+di = 0.087
 @jit(nopython=True)
 def phii(x):
-    y = M_i * (ai*x-bi)  # This is for Modality A in our study...
-                         # M_i will be set by function set_AD_Burden
+    # in the paper this was g_I * (I^{(I)_n} - I^{(I)_{thr}}).
+    # Apply same distributing as above...
+    y = (ai*x-bi)
+    # if (y != 0):
     return y/(1.-np.exp(-di*y))
+    # else:
+    #     return 0
 
 
 # --------------------------------------------------------------------------
@@ -121,17 +124,13 @@ def numObsVars():  # Returns the number of observation vars used, here xn and rn
 # --------------------------------------------------------------------------
 # Set the parameters for this model
 def setParms(modelParms):
-    global we, SC, M_e, M_i
+    global we, SC
     if 'we' in modelParms:
         we = modelParms['we']
     if 'G' in modelParms:  # I've made this mistake too many times...
         we = modelParms['G']
-    if 'SC' in modelParms:  # I've made this mistake too many times...
+    if 'SC' in modelParms:
         SC = modelParms['SC']
-    if 'M_e' in modelParms:  # I've made this mistake too many times...
-        M_e = modelParms['M_e']
-    if 'M_i' in modelParms:  # I've made this mistake too many times...
-        M_i = modelParms['M_i']
 
 
 def getParm(parmList):
@@ -143,10 +142,6 @@ def getParm(parmList):
         return ae
     if 'SC' in parmList:
         return SC
-    if 'M_e' in parmList:
-        return M_e
-    if 'M_i' in parmList:
-        return M_i
     return None
 
 
@@ -160,7 +155,6 @@ couplingOp = Couplings.instantaneousDirectCoupling()  # The only one who knows t
 # -------------------------------------------------------------------------------------
 # ----------------- Dynamic Mean Field (a.k.a., reducedWongWang) ----------------------
 # -------------------------------------------------------------------------------------
-
 @jit(nopython=True)
 def dfun(simVars, coupling, I_external):
     Se = simVars[0]; Si = simVars[1]; J = simVars[2]
