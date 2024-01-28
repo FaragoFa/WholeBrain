@@ -61,7 +61,7 @@ I0 = 0.382      # .397  # [nA] overall effective external input
 gamma = 1.      # Learning rate
 w = 1.4         # weight for recurrent self-excitation in each excitatory population
 rho = 3         # target-firing rate of the excitatory population is maintained at the 3 Hz
-G_optim = 6
+
 
 SC = None       # Structural connectivity (should be provided externally)
 
